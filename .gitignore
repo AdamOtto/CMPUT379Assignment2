@@ -1,0 +1,11 @@
+# Mac OS
+.DS_Store
+
+# Object files
+*.o
+
+# Texteditor backups
+*~
+
+# Executables
+*.out
