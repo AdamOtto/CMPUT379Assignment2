@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
 	char *hostname;
 	char *keyfile;
-	int portnumber;
+	int portnumber = MY_PORT;
 
 	if (argc == 3) {
 		hostname = argv[1];
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 		keyfile = argv[3];
 	} else {
 		printf("Incorrect number of arguments supplied.\n");
-		return -1;
+		//return -1;
 	}
 
 

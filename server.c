@@ -23,8 +23,11 @@ int main(int argc, char * argv[])
 	char whiteBoardMessages[maxWhiteBoardEntries][50];
 
 	int i = 0;
-
+	
+	int optval = 1;
 	sock = socket (AF_INET, SOCK_STREAM, 0);
+	if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
+		printf("setsockopt error");
 	if (sock < 0) {
 		perror ("Server: cannot open master socket");
 		exit (1);
@@ -54,15 +57,18 @@ int main(int argc, char * argv[])
 	
 	recv(snew,c,50,0);
 	
+	int hold = 0;
 	switch(c[0]) {
 		case '?':
 			send(snew,"Received entry request\n",50,0);
+			hold = getIntFromString(1, c, 50);
 		break;
 		case '@':
 			send(snew,"Received update request\n",50,0);
+			hold = getIntFromString(1, c, 50);
 		break;
 	}
-
+	printf("%d\n", hold);
 
 	/*
 	// Zero out all of the bytes in character array c
@@ -99,4 +105,21 @@ int main(int argc, char * argv[])
 	*/
 	close (snew);
 	sleep(1);
+}
+
+int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString) {
+	//printf("%d\n",sizeOfString);
+	int i, j = 0;
+	for(i = startingIndex; i < sizeOfString; i++)
+	{
+		if ((int)stringToRead[i] >= 48 &&  (int)stringToRead[i] <= 57) {
+			j++;
+		}
+		else
+			break;
+	}
+	char subBuf[j];
+	memcpy(subBuf, &stringToRead[startingIndex], j);
+	//printf("subBuf: %s\n", subBuf);
+	return atoi(subBuf);
 }
