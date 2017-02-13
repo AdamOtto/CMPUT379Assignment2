@@ -8,40 +8,36 @@
 #include <strings.h>
 #include <arpa/inet.h>
 
-#define	 MY_PORT  2224
-
-/* ---------------------------------------------------------------------
-   This is a sample client program for the number server. The client and
-   the server need to run on the same machine.
-   --------------------------------------------------------------------- */
+#define MY_PORT 2224
+#define HOSTNAME "localhost"
 
 int main(int argc, char *argv[]) {
 
-	char *hostname;
-	char *keyfile;
-	int portnumber = MY_PORT;
+    char *hostname;
+    char *keyfile;
+    int portnumber;
 
-	if (argc == 3) {
-		hostname = argv[1];
-		portnumber = atoi(argv[2]);
-	} else if (argc == 4) {
-		hostname = argv[1];
-		portnumber = atoi(argv[2]);
-		keyfile = argv[3];
-	} else {
-		printf("Incorrect number of arguments supplied.\n");
-		//return -1;
-	}
+    printf("\n");
+    if (argc == 3) {
+        hostname = argv[1];
+        portnumber = atoi(argv[2]);
+        printf("Hostname: %s\nPort number: %d\n", hostname, portnumber);
+    } else if (argc == 4) {
+        hostname = argv[1];
+        portnumber = atoi(argv[2]);
+        keyfile = argv[3];
+        printf("Hostname: %s\nPort number: %d\nKeyfile: %s\n", hostname, portnumber, keyfile);
+    } else {
+        printf("Incorrect number of arguments supplied.\n");
+        return -1;
+    }
 
+    int	s, number;
+    char c[50];
+    struct sockaddr_in server;
+    struct hostent	*host;
 
-		
-	int	s, number;
-	char c[50];
-	struct	sockaddr_in	server;
-
-	struct	hostent		*host;
-
-	host = gethostbyname ("localhost");
+    host = gethostbyname(HOSTNAME);
 
 	if (host == NULL) {
 		perror ("Client: cannot get host description");
