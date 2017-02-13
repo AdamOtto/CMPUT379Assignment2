@@ -8,13 +8,26 @@
 
 #define	MY_PORT	2224
 
-/* ---------------------------------------------------------------------
-   This	is  a sample server which opens a stream socket and then awaits
-   requests coming from client processes.
-   --------------------------------------------------------------------- */
+int main(int argc, char * argv[]) {
 
-int main(int argc, char * argv[])
-{
+	char *statefile;
+	int entries;
+	int portnumber = MY_PORT;	
+
+	if (argc == 4) {
+		portnumber = atoi(argv[1]);
+		if (argv[2] == "-f") {
+			statefile = argv[3];
+		} else if (argv[2] == "-n") {
+			entries = atoi(argv[3]);
+		} else {
+			printf("Incorrect option.\n");
+		}
+	} else {
+		printf("Incorrect number of arguments supplied.\n");
+		// return -1;
+	}
+
 	int	sock, snew, fromlength, number, outnum;	
 	struct	sockaddr_in	master, from;
 	char c[50];
