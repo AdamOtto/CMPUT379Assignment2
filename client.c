@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
 		
 	int	s, number;
-	char c[30];
+	char c[50];
 	struct	sockaddr_in	server;
 
 	struct	hostent		*host;
@@ -66,7 +66,15 @@ int main(int argc, char *argv[]) {
 		exit (1);
 	}
 
-	recv(s,c,30,0);
+	recv(s,c,50,0);
+	printf("%s\n",c);
+	
+	printf("Please type a command:\n");
+	char sendStr[50];	
+	scanf("%s", sendStr);
+	send(s,sendStr,50,0);
+
+	recv(s,c,50,0);
 	printf("%s\n",c);
 
 	/*
