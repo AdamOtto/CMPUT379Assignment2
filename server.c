@@ -15,11 +15,12 @@
 
 int main(int argc, char * argv[])
 {
-	int	sock, snew, fromlength, number, outnum;
-	int whiteBoardEntries = 0;
+	int	sock, snew, fromlength, number, outnum;	
 	struct	sockaddr_in	master, from;
 	char c[50];
-
+	int whiteBoardEntries = 0;
+	int maxWhiteBoardEntries = 38;
+	char whiteBoardMessages[maxWhiteBoardEntries][50];
 
 	int i = 0;
 
@@ -51,6 +52,18 @@ int main(int argc, char * argv[])
 	puts(c);
 	send(snew,c,50,0);
 	
+	recv(snew,c,50,0);
+	
+	switch(c[0]) {
+		case '?':
+			send(snew,"Received entry request\n",50,0);
+		break;
+		case '@':
+			send(snew,"Received update request\n",50,0);
+		break;
+	}
+
+
 	/*
 	// Zero out all of the bytes in character array c
 	bzero(c,11);
