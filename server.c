@@ -13,7 +13,8 @@ int main(int argc, char * argv[]) {
 	char *statefile;
 	int entries;
 	int portnumber = MY_PORT;	
-
+	int stringSize = 128;	
+	
 	if (argc == 4) {
 		portnumber = atoi(argv[1]);
 		if (argv[2] == "-f") {
@@ -30,10 +31,9 @@ int main(int argc, char * argv[]) {
 
 	int	sock, snew, fromlength, number, outnum;	
 	struct	sockaddr_in	master, from;
-	char c[50];
-	int whiteBoardEntries = 0;
+	char c[stringSize];
 	int maxWhiteBoardEntries = 38;
-	char whiteBoardMessages[maxWhiteBoardEntries][50];
+	char whiteBoardMessages[maxWhiteBoardEntries][stringSize];
 
 	int i = 0;
 	
@@ -64,24 +64,54 @@ int main(int argc, char * argv[]) {
 	}
 	outnum = htonl (number);
 	
-	sprintf(c,"CMPUT379 Whiteboard Server v0\n%d\n", whiteBoardEntries);
+	sprintf(c,"CMPUT379 Whiteboard Server v0\n%d\n", maxWhiteBoardEntries);
 	puts(c);
-	send(snew,c,50,0);
+	send(snew,c,stringSize,0);
 	
-	recv(snew,c,50,0);
-	
-	int hold = 0;
-	switch(c[0]) {
-		case '?':
-			send(snew,"Received entry request\n",50,0);
-			hold = getIntFromString(1, c, 50);
-		break;
-		case '@':
-			send(snew,"Received update request\n",50,0);
-			hold = getIntFromString(1, c, 50);
-		break;
+	while(1)
+	{
+		recv(snew,c,stringSize,0);
+		int index = 0;
+		int * StringParseIndex = &index;
+		int entryNum = 0;
+		int entrylength = 0;
+		int encryptedFlag = 0; //0: plaintext, 1: encrypted
+		switch(c[0]) {
+			case '?':
+				printf("Received entry request\n");
+				entryNum = getIntFromString(1, c, stringSize, StringParseIndex);
+				
+				if(c[*StringParseIndex] == 'e'){
+					printf("Encypted message received\n");
+					encryptedFlag = 1;
+					//Decrypt
+				}
+				else if(c[*StringParseIndex] == 'p')
+					printf("Plaintext message received\n");	
+				
+				if(entryNum >= maxWhiteBoardEntries)
+				{
+					//TODO: bullet proofing
+					if(encryptedFlag == 1)
+						sprintf(c,"!%de%d\nEntry does not exist.\n", entryNum, entrylength);
+					else
+						sprintf(c,"!%dp%d\nEntry does not exist.\n", entryNum, entrylength);
+					puts(c);
+					send(snew,c,stringSize,0);
+					break;
+				}
+				send(snew, whiteBoardMessages[entryNum], stringSize,0);
+			break;
+			case '@':
+				printf("Received update request\n");
+				entryNum = getIntFromString(1, c, stringSize, StringParseIndex);
+				if(entryNum >= maxWhiteBoardEntries)
+				{
+					//TODO: bullet proofing
+				}
+			break;
+		}
 	}
-	printf("%d\n", hold);
 
 	/*
 	// Zero out all of the bytes in character array c
@@ -120,9 +150,9 @@ int main(int argc, char * argv[]) {
 	sleep(1);
 }
 
-int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString) {
+int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, int * parseIndex) {
 	//printf("%d\n",sizeOfString);
-	int i, j = 0;
+	int i, j = startingIndex;
 	for(i = startingIndex; i < sizeOfString; i++)
 	{
 		if ((int)stringToRead[i] >= 48 &&  (int)stringToRead[i] <= 57) {
@@ -133,6 +163,7 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString) {
 	}
 	char subBuf[j];
 	memcpy(subBuf, &stringToRead[startingIndex], j);
+	*parseIndex = j;
 	//printf("subBuf: %s\n", subBuf);
 	return atoi(subBuf);
 }

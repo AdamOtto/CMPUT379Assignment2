@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         printf("Hostname: %s\nPort number: %d\nKeyfile: %s\n", hostname, portnumber, keyfile);
     } else {
         printf("Incorrect number of arguments supplied.\n");
-        return -1;
+        //return -1;
     }
 
     int	s, number;
@@ -65,14 +65,16 @@ int main(int argc, char *argv[]) {
 	recv(s,c,50,0);
 	printf("%s\n",c);
 	
-	printf("Please type a command:\n");
-	char sendStr[50];	
-	scanf("%s", sendStr);
-	send(s,sendStr,50,0);
+	while(1)
+	{
+		printf("Please type a command:\n");
+		char sendStr[50];	
+		scanf("%s", sendStr);
+		send(s,sendStr,50,0);
 
-	recv(s,c,50,0);
-	printf("%s\n",c);
-
+		recv(s,c,50,0);
+		printf("%s\n",c);
+	}
 	/*
 	// Zero out all bytes in character array c
 	bzero(c,11);
