@@ -72,7 +72,12 @@ int main(int argc, char *argv[]) {
 		char sendStr[stringSize];	
 		scanf("%s", sendStr);
 		send(s,sendStr,stringSize,0);
-
+		if(sendStr[0] == '@')
+		{
+			//Send the message next.
+			scanf("%s", sendStr);
+			send(s,sendStr,stringSize,0);
+		}
 		recv(s,c,stringSize,0);
 		printf("%s\n",c);
 	}

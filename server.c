@@ -105,10 +105,48 @@ int main(int argc, char * argv[]) {
 			case '@':
 				printf("Received update request\n");
 				entryNum = getIntFromString(1, c, stringSize, StringParseIndex);
+
+				if(c[*StringParseIndex] == 'e'){
+					printf("Encypted message received\n");
+					encryptedFlag = 1;
+					//Decrypt
+				}
+				else if(c[*StringParseIndex] == 'p')
+					printf("Plaintext message received\n");	
+
+				entrylength = getIntFromString( *StringParseIndex + 1, c, stringSize, StringParseIndex);
+				
 				if(entryNum >= maxWhiteBoardEntries)
 				{
-					//TODO: bullet proofing
+					if(encryptedFlag == 1)
+						sprintf(c,"!%de%d\nEntry does not exist.\n", entryNum, entrylength);
+					else
+						sprintf(c,"!%dp%d\nEntry does not exist.\n", entryNum, entrylength);
+					puts(c);
+					send(snew,c,stringSize,0);
+					break;
 				}
+				if(entrylength >= stringSize)
+				{
+					if(encryptedFlag == 1)
+						sprintf(c,"!%de%d\nMessage is too long.\n", entryNum, entrylength);
+					else
+						sprintf(c,"!%dp%d\nMessage is too long.\n", entryNum, entrylength);
+					puts(c);
+					send(snew,c,stringSize,0);
+					break;
+				}
+				
+				//Bulletproofing done, get message next.			
+				recv(snew,c,stringSize,0);
+				//Update and send success message.
+				memcpy(whiteBoardMessages[entryNum], &c, entrylength);
+				if(encryptedFlag == 1)
+						sprintf(c,"!%de%d\n\n", entryNum, entrylength);
+					else
+						sprintf(c,"!%dp%d\n\n", entryNum, entrylength);
+				puts(c);
+				send(snew,c,stringSize,0);
 			break;
 		}
 	}
