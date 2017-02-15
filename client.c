@@ -22,12 +22,10 @@ int main(int argc, char *argv[]) {
     if (argc == 3) {
         hostname = argv[1];
         portnumber = atoi(argv[2]);
-        printf("Hostname: %s\nPort number: %d\n", hostname, portnumber);
     } else if (argc == 4) {
         hostname = argv[1];
         portnumber = atoi(argv[2]);
         keyfile = argv[3];
-        printf("Hostname: %s\nPort number: %d\nKeyfile: %s\n", hostname, portnumber, keyfile);
     } else {
         printf("Incorrect number of arguments supplied.\n");
         // exit (1);
