@@ -136,15 +136,20 @@ int main(int argc, char * argv[]) {
 					send(snew,c,stringSize,0);
 					break;
 				}
+				if(entrylength != 0) {
+					//Bulletproofing done, get message next.			
+					recv(snew,c,stringSize,0);
+					//Update and send success message.
+					memcpy(whiteBoardMessages[entryNum], &c, entrylength);
+				}
+				else {
+					memset(whiteBoardMessages[entryNum], 0, stringSize);			
+				}
 				
-				//Bulletproofing done, get message next.			
-				recv(snew,c,stringSize,0);
-				//Update and send success message.
-				memcpy(whiteBoardMessages[entryNum], &c, entrylength);
 				if(encryptedFlag == 1)
-						sprintf(c,"!%de%d\n\n", entryNum, entrylength);
-					else
-						sprintf(c,"!%dp%d\n\n", entryNum, entrylength);
+					sprintf(c,"!%de%d\n\n", entryNum, entrylength);
+				else
+					sprintf(c,"!%dp%d\n\n", entryNum, entrylength);
 				puts(c);
 				send(snew,c,stringSize,0);
 			break;
