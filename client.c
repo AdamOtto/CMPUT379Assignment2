@@ -13,9 +13,9 @@
 
 int main(int argc, char *argv[]) {
 
-    char *hostname;
+    char *hostname = "localhost";
     char *keyfile;
-    int portnumber;
+    int portnumber = MY_PORT;
     int stringSize = 128;
 
     printf("\n");
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
         printf("Hostname: %s\nPort number: %d\nKeyfile: %s\n", hostname, portnumber, keyfile);
     } else {
         printf("Incorrect number of arguments supplied.\n");
-        //return -1;
+        // exit (1);
     }
 
     int	s, number;
@@ -38,30 +38,29 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in server;
     struct hostent	*host;
 
-    host = gethostbyname(HOSTNAME);
+    host = gethostbyname(hostname);
 
-	if (host == NULL) {
-		perror ("Client: cannot get host description");
-		exit (1);
-	}
+    if (host == NULL) {
+        perror ("Client: cannot get host description");
+        exit (1);
+    }
 
+    s = socket (AF_INET, SOCK_STREAM, 0);
 
-	s = socket (AF_INET, SOCK_STREAM, 0);
+    if (s < 0) {
+        perror ("Client: cannot open socket");
+        exit (1);
+    }
 
-	if (s < 0) {
-		perror ("Client: cannot open socket");
-		exit (1);
-	}
+    bzero (&server, sizeof(server));
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server.sin_port = htons (portnumber);
 
-	bzero (&server, sizeof (server));
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr("127.0.0.1");
-	server.sin_port = htons (MY_PORT);
-
-	if (connect (s, (struct sockaddr*) & server, sizeof (server))) {
-		perror ("Client: cannot connect to server");
-		exit (1);
-	}
+    if (connect (s, (struct sockaddr*) & server, sizeof (server))) {
+        perror ("Client: cannot connect to server");
+        exit (1);
+    }
 
 	recv(s,c,stringSize,0);
 	printf("%s\n",c);
@@ -106,6 +105,5 @@ int main(int argc, char *argv[]) {
 	// received.
 	printf("%s\n",c);
 	*/
-	close (s);
+    close (s);
 }
-
