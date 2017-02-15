@@ -11,15 +11,15 @@
 int main(int argc, char * argv[]) {
 
 	char *statefile;
-	int entries;
+	int entries = 38;
 	int portnumber = MY_PORT;	
 	int stringSize = 128;	
 	
 	if (argc == 4) {
 		portnumber = atoi(argv[1]);
-		if (argv[2] == "-f") {
+		if (strcmp(argv[2], "-f") == 0) {
 			statefile = argv[3];
-		} else if (argv[2] == "-n") {
+		} else if (strcmp(argv[2], "-n") == 0) {
 			entries = atoi(argv[3]);
 		} else {
 			printf("Incorrect option.\n");
@@ -32,8 +32,7 @@ int main(int argc, char * argv[]) {
 	int	sock, snew, fromlength, number, outnum;	
 	struct	sockaddr_in	master, from;
 	char c[stringSize];
-	int maxWhiteBoardEntries = 38;
-	char whiteBoardMessages[maxWhiteBoardEntries][stringSize];
+	char whiteBoardMessages[entries][stringSize];
 
 	int i = 0;
 	
@@ -64,7 +63,7 @@ int main(int argc, char * argv[]) {
 	}
 	outnum = htonl (number);
 	
-	sprintf(c,"CMPUT379 Whiteboard Server v0\n%d\n", maxWhiteBoardEntries);
+	sprintf(c,"CMPUT379 Whiteboard Server v0\n%d\n", entries);
 	puts(c);
 	send(snew,c,stringSize,0);
 	
@@ -89,7 +88,7 @@ int main(int argc, char * argv[]) {
 				else if(c[*StringParseIndex] == 'p')
 					printf("Plaintext message received\n");	
 				
-				if(entryNum >= maxWhiteBoardEntries)
+				if(entryNum >= entries)
 				{
 					//TODO: bullet proofing
 					if(encryptedFlag == 1)
@@ -116,7 +115,7 @@ int main(int argc, char * argv[]) {
 
 				entrylength = getIntFromString( *StringParseIndex + 1, c, stringSize, StringParseIndex);
 				
-				if(entryNum >= maxWhiteBoardEntries)
+				if(entryNum >= entries)
 				{
 					if(encryptedFlag == 1)
 						sprintf(c,"!%de%d\nEntry does not exist.\n", entryNum, entrylength);
