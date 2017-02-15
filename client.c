@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
     char *hostname = "localhost";
     char *keyfile;
     int portnumber = MY_PORT;
+    int stringSize = 128;
 
     printf("\n");
     if (argc == 3) {
@@ -33,7 +34,7 @@ int main(int argc, char *argv[]) {
     }
 
     int	s, number;
-    char c[50];
+    char c[stringSize];
     struct sockaddr_in server;
     struct hostent	*host;
 
@@ -61,18 +62,19 @@ int main(int argc, char *argv[]) {
         exit (1);
     }
 
-    recv(s, c, 50, 0);
-    printf("%s\n", c);
+	recv(s,c,stringSize,0);
+	printf("%s\n",c);
 	
-    while(1) {
-        printf("Please type a command:\n");
-        char sendStr[50];	
-        scanf("%s", sendStr);
-        send(s, sendStr, 50, 0);
+	while(1)
+	{
+		printf("Please type a command:\n");
+		char sendStr[stringSize];	
+		scanf("%s", sendStr);
+		send(s,sendStr,stringSize,0);
 
-        recv(s, c, 50, 0);
-        printf("%s\n",c);
-    }
+		recv(s,c,stringSize,0);
+		printf("%s\n",c);
+	}
 	/*
 	// Zero out all bytes in character array c
 	bzero(c,11);
