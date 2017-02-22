@@ -67,41 +67,21 @@ int main(int argc, char *argv[]) {
 	{
 		printf("Please type a command:\n");
 		char sendStr[stringSize];	
-		scanf("%s", sendStr);
+		//scanf("%s", sendStr);
+		fgets (sendStr, stringSize, stdin);
 		send(s,sendStr,stringSize,0);
 		if(sendStr[0] == '@')
 		{
 			//Send the message next.
-			scanf("%s", sendStr);
+			//scanf("%s", sendStr);
+			fgets (sendStr, stringSize, stdin);
+			printf("\nInputtedString: %s\n", sendStr);
 			send(s,sendStr,stringSize,0);
+			printf("Update Sent.\n");
 		}
 		recv(s,c,stringSize,0);
 		printf("%s\n",c);
 	}
-	/*
-	// Zero out all bytes in character array c
-	bzero(c,11);
-	// assign 'M' to the last element of c
-	c[10] = 'M';
-	// assign 'A' to the first element of c
-	c[0] = 'A';
 
-	// Send all 11 bytes of character array c to the server
-	// It is important to note that even the null terminating (zero valued) bytes
-	// are sent to the server. 
-	send(s,c,11,0);
-
-	// zero out each byte of the array before receiving from the server
-	bzero(c,11);
-
-	// Here the client wants to receive 7 bytes from the server, but the server
-	// only sends 5 bytes
-	recv(s,c,7,0);
-	sleep(2);
-
-	// Now we print out the character array to reveal that only 5 bytes were
-	// received.
-	printf("%s\n",c);
-	*/
-    close (s);
+	close (s);
 }

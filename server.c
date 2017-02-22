@@ -69,6 +69,7 @@ int main(int argc, char * argv[]) {
 	
 	while(1)
 	{
+		printf("Waiting for request.\n");
 		recv(snew,c,stringSize,0);
 		int index = 0;
 		int * StringParseIndex = &index;
@@ -99,7 +100,9 @@ int main(int argc, char * argv[]) {
 					send(snew,c,stringSize,0);
 					break;
 				}
-				send(snew, whiteBoardMessages[entryNum], stringSize,0);
+				entrylength = getStringSize(whiteBoardMessages[entryNum]);
+				sprintf(c,"!%dp%d\n%s\n", entryNum, entrylength, whiteBoardMessages[entryNum]);
+				send(snew, c, stringSize,0);
 			break;
 			case '@':
 				printf("Received update request\n");
@@ -135,16 +138,18 @@ int main(int argc, char * argv[]) {
 					send(snew,c,stringSize,0);
 					break;
 				}
-				if(entrylength != 0) {
-					//Bulletproofing done, get message next.			
-					recv(snew,c,stringSize,0);
-					//Update and send success message.
+
+				//Bulletproofing done, get message next.			
+				recv(snew,c,stringSize,0);
+
+				if(entrylength != 0) {					
+					//Update and send success message.					
 					memcpy(whiteBoardMessages[entryNum], &c, entrylength);
 				}
 				else {
 					memset(whiteBoardMessages[entryNum], 0, stringSize);			
 				}
-				
+				printf("Update Successful.\n");
 				if(encryptedFlag == 1)
 					sprintf(c,"!%de%d\n\n", entryNum, entrylength);
 				else
@@ -152,44 +157,26 @@ int main(int argc, char * argv[]) {
 				puts(c);
 				send(snew,c,stringSize,0);
 			break;
+			default:
+				sprintf(c,"\nUnexpected Query.\n");
+				send(snew,c,stringSize,0);
 		}
 	}
 
-	/*
-	// Zero out all of the bytes in character array c
-	bzero(c,11);
-
-	// Here we print off the values of character array c to show that
-	// each byte has an intial value of zero before receiving anything
-	// from the client.
-	printf("Before recieving from client\n--------------------------\n");
-	printf("Character array c has the following byte values:\n");
-	for (i = 0; i < 11; i++){
-		printf("c[%d] = %d\n",i,c[i]);
-	}
-
-	// Now we receive from the client, we specify that we would like 11 bytes
-	recv(snew,c,11,0);
-
-	// Print off the received bytes from the client as a string. 
-	// Next, print off the value of each byte to showcase that indeed
-	// 11 bytes were received from the client
-	printf("\nAfter receiving from client\n-------------------------\n");
-	printf("Printing character array c as a string is: %s\n",c);
-	printf("Character array c has the following byte values:\n");
-	for (i = 0; i < 11; i++){
-		printf("c[%d] = %d\n",i,c[i]);
-	}
-
-	//copy the string "Stevens" into character array c
-	strncpy(c,"Stevens",7);
-	
-	//Send the first five bytes of character array c back to the client
-	//The client, however, wants to receive 7 bytes.
-	send(snew,c,5,0);
-	*/
 	close (snew);
 	sleep(1);
+}
+
+int getStringSize(char stringToRead[])
+{
+	int count = 0;
+	while(1)
+	{
+		if( stringToRead[count] != '\0' )
+			count++;
+		else
+			return count;
+	}
 }
 
 int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, int * parseIndex) {
