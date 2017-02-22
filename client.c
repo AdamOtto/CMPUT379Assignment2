@@ -67,17 +67,13 @@ int main(int argc, char *argv[]) {
 	{
 		printf("Please type a command:\n");
 		char sendStr[stringSize];	
-		//scanf("%s", sendStr);
 		fgets (sendStr, stringSize, stdin);
 		send(s,sendStr,stringSize,0);
 		if(sendStr[0] == '@')
 		{
 			//Send the message next.
-			//scanf("%s", sendStr);
 			fgets (sendStr, stringSize, stdin);
-			printf("\nInputtedString: %s\n", sendStr);
 			send(s,sendStr,stringSize,0);
-			printf("Update Sent.\n");
 		}
 		recv(s,c,stringSize,0);
 		printf("%s\n",c);
