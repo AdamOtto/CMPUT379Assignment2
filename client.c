@@ -77,6 +77,11 @@ int main(int argc, char *argv[]) {
 		}
 		recv(s,c,stringSize,0);
 		printf("%s\n",c);
+		if(strcmp(c, "\nUnexpected Query. Terminating Connection.\n") == 0)
+		{
+			close(s);
+			break;
+		}
 	}
 
 	close (s);

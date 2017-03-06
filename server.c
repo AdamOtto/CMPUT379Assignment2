@@ -7,16 +7,19 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #define	MY_PORT	2224
 #define NUM_THREADS 10
 
 void * MessageBoard(void * socket);
+void signalhandler(int signal);
 
 /*Global Variables*/
 int entries = 38;
 const int stringSize = 128;
 char whiteBoardMessages[38][128];
+static struct sigaction exitSignalHandler;
 
 pthread_mutex_t mutex;
 pthread_t thread[NUM_THREADS];
@@ -26,10 +29,51 @@ int fd, id[NUM_THREADS];
 int main(int argc, char * argv[]) {
 
 	char *statefile;
-	//int entries = 38;
 	int portnumber = MY_PORT;	
-	//int stringSize = 128;	
+		
+	//Make main() a daemon task.===================================
+	//To stop the server, type "kill 'id'" where id is the pid of the child process.
+	pid_t pid = fork();
+	pid_t sid = 0;
 	
+	if (pid < 0)
+	{
+		printf("fork failed!\n");
+		exit(1);
+	}
+
+	if (pid > 0)
+	{
+		//in the parent
+		printf("pid of child process %d \n", pid);
+		exit(0);
+	}
+
+	umask(0);
+	
+	//Open logs here.
+
+	sid = setsid();
+	if(sid < 0)
+	{
+		//fprintf(fp, "cannot create new process group");
+		exit(1);
+	}
+
+	if ((chdir("/")) < 0) {
+		printf("Could not change working directory to /\n");
+		exit(1);
+	}
+
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+	//=============================================================
+	
+	exitSignalHandler.sa_handler = signalhandler;	
+	exitSignalHandler.sa_flags = 0;
+	sigaction(SIGTERM, &exitSignalHandler, 0);
+
 	if (argc == 4) {
 		portnumber = atoi(argv[1]);
 		if (strcmp(argv[2], "-f") == 0) {
@@ -86,119 +130,17 @@ int main(int argc, char * argv[]) {
 		//Start a new thread.
 		id[i] = i;
 		pthread_mutex_init(&mutex,NULL);
-		pthread_create(&thread[i], NULL, MessageBoard, (void *) snew);
+		pthread_create(&thread[i], NULL, MessageBoard, (void *)&snew);
 		i++;
 	}
-	
-	
-	/*
-	sprintf(c,"CMPUT379 Whiteboard Server v0\n%d\n", entries);
-	puts(c);
-	send(snew,c,stringSize,0);
-	
-	while(1)
-	{
-		printf("Waiting for request.\n");
-		recv(snew,c,stringSize,0);
-		int index = 0;
-		int * StringParseIndex = &index;
-		int entryNum = 0;
-		int entrylength = 0;
-		int encryptedFlag = 0; //0: plaintext, 1: encrypted
-		switch(c[0]) {
-			case '?':
-				printf("Received entry request\n");
-				entryNum = getIntFromString(1, c, stringSize, StringParseIndex);
-				
-				if(c[*StringParseIndex] == 'e'){
-					printf("Encypted message received\n");
-					encryptedFlag = 1;
-					//Decrypt
-				}
-				else if(c[*StringParseIndex] == 'p')
-					printf("Plaintext message received\n");	
-				
-				if(entryNum >= entries)
-				{
-					//TODO: bullet proofing
-					if(encryptedFlag == 1)
-						sprintf(c,"!%de%d\nEntry does not exist.\n", entryNum, entrylength);
-					else
-						sprintf(c,"!%dp%d\nEntry does not exist.\n", entryNum, entrylength);
-					puts(c);
-					send(snew,c,stringSize,0);
-					break;
-				}
-				entrylength = getStringSize(whiteBoardMessages[entryNum]);
-				sprintf(c,"!%dp%d\n%s\n", entryNum, entrylength, whiteBoardMessages[entryNum]);
-				send(snew, c, stringSize,0);
-			break;
-			case '@':
-				printf("Received update request\n");
-				entryNum = getIntFromString(1, c, stringSize, StringParseIndex);
 
-				if(c[*StringParseIndex] == 'e'){
-					printf("Encypted message received\n");
-					encryptedFlag = 1;
-					//Decrypt
-				}
-				else if(c[*StringParseIndex] == 'p')
-					printf("Plaintext message received\n");	
-
-				entrylength = getIntFromString( *StringParseIndex + 1, c, stringSize, StringParseIndex);
-				
-				if(entryNum >= entries)
-				{
-					if(encryptedFlag == 1)
-						sprintf(c,"!%de%d\nEntry does not exist.\n", entryNum, entrylength);
-					else
-						sprintf(c,"!%dp%d\nEntry does not exist.\n", entryNum, entrylength);
-					puts(c);
-					send(snew,c,stringSize,0);
-					break;
-				}
-				if(entrylength >= stringSize)
-				{
-					if(encryptedFlag == 1)
-						sprintf(c,"!%de%d\nMessage is too long.\n", entryNum, entrylength);
-					else
-						sprintf(c,"!%dp%d\nMessage is too long.\n", entryNum, entrylength);
-					puts(c);
-					send(snew,c,stringSize,0);
-					break;
-				}
-
-				//Bulletproofing done, get message next.			
-				recv(snew,c,stringSize,0);
-
-				if(entrylength != 0) {					
-					//Update and send success message.					
-					memcpy(whiteBoardMessages[entryNum], &c, entrylength);
-				}
-				else {
-					memset(whiteBoardMessages[entryNum], 0, stringSize);			
-				}
-				printf("Update Successful.\n");
-				if(encryptedFlag == 1)
-					sprintf(c,"!%de%d\n\n", entryNum, entrylength);
-				else
-					sprintf(c,"!%dp%d\n\n", entryNum, entrylength);
-				puts(c);
-				send(snew,c,stringSize,0);
-			break;
-			default:
-				sprintf(c,"\nUnexpected Query.\n");
-				send(snew,c,stringSize,0);
-		}
-	}
-	*/
 	close (snew);
 	sleep(1);
 }
 
 void * MessageBoard(void * socket){
-
 	int snew = *((int *)socket);
+
 	char c[stringSize];
 
 	sprintf(c,"CMPUT379 Whiteboard Server v0\n%d\n", entries);
@@ -215,6 +157,7 @@ void * MessageBoard(void * socket){
 		int entryNum = 0;
 		int entrylength = 0;
 		int encryptedFlag = 0; //0: plaintext, 1: encrypted
+		printf("request: %s\n",c);
 		switch(c[0]) {
 			case '?':
 				printf("Received entry request\n");
@@ -238,6 +181,7 @@ void * MessageBoard(void * socket){
 					send(snew,c,stringSize,0);
 					break;
 				}
+				//TODO: lock whiteBoardMessages to prevent threading conflict.
 				entrylength = getStringSize(whiteBoardMessages[entryNum]);
 				sprintf(c,"!%dp%d\n%s\n", entryNum, entrylength, whiteBoardMessages[entryNum]);
 				send(snew, c, stringSize,0);
@@ -281,10 +225,12 @@ void * MessageBoard(void * socket){
 				recv(snew,c,stringSize,0);
 
 				if(entrylength != 0) {					
-					//Update and send success message.					
+					//Update and send success message.
+					//TODO: lock whiteBoardMessages to prevent threading conflict.					
 					memcpy(whiteBoardMessages[entryNum], &c, entrylength);
 				}
 				else {
+					//TODO: lock whiteBoardMessages to prevent threading conflict.
 					memset(whiteBoardMessages[entryNum], 0, stringSize);			
 				}
 				printf("Update Successful.\n");
@@ -296,9 +242,11 @@ void * MessageBoard(void * socket){
 				send(snew,c,stringSize,0);
 			break;
 			default:
-				sprintf(c,"\nUnexpected Query.\n");
+				sprintf(c,"\nUnexpected Query. Terminating Connection.\n");
 				send(snew,c,stringSize,0);
-		}
+				close (snew);
+				return;
+			}
 	}
 }
 
@@ -330,4 +278,18 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, i
 	*parseIndex = j;
 	//printf("subBuf: %s\n", subBuf);
 	return atoi(subBuf);
+}
+
+
+void signalhandler(int signal) {
+
+	printf("Shutting down server.\n");
+	//TODO: Dump whiteBoardMessages into a file
+		
+	FILE *fp;
+	fp = fopen("/tmp/test.txt", "w");
+	fprintf(fp, "This is to test to see if the server has handled this signal correctly...\n");
+	fclose(fp);
+	
+	exit(1);
 }
