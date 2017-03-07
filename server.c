@@ -263,7 +263,6 @@ int getStringSize(char stringToRead[])
 }
 
 int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, int * parseIndex) {
-	//printf("%d\n",sizeOfString);
 	int i, j = startingIndex;
 	for(i = startingIndex; i < sizeOfString; i++)
 	{
@@ -276,19 +275,17 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, i
 	char subBuf[j];
 	memcpy(subBuf, &stringToRead[startingIndex], j);
 	*parseIndex = j;
-	//printf("subBuf: %s\n", subBuf);
 	return atoi(subBuf);
 }
 
 
 void signalhandler(int signal) {
-
-	printf("Shutting down server.\n");
 	//TODO: Dump whiteBoardMessages into a file
-		
+	int i;
 	FILE *fp;
-	fp = fopen("/tmp/test.txt", "w");
-	fprintf(fp, "This is to test to see if the server has handled this signal correctly...\n");
+	fp = fopen("/home/user/whiteboard.all", "w");
+	for(i = 0; i < entries; i++)
+		fprintf(fp, "%s", whiteBoardMessages[i]);
 	fclose(fp);
 	
 	exit(1);
