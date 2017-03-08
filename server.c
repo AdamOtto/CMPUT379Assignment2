@@ -14,6 +14,7 @@
 
 void * MessageBoard(void * socket);
 void signalhandler(int signal);
+void LoadWhiteBoard();
 
 /*Global Variables*/
 int entries = 38;
@@ -30,7 +31,7 @@ int main(int argc, char * argv[]) {
 
 	char *statefile;
 	int portnumber = MY_PORT;	
-		
+
 	//Make main() a daemon task.===================================
 	//To stop the server, type "kill 'id'" where id is the pid of the child process.
 	pid_t pid = fork();
@@ -70,9 +71,13 @@ int main(int argc, char * argv[]) {
 	close(STDERR_FILENO);
 	//=============================================================
 	
+	//Create the signal handler to handle SIGTERM
 	exitSignalHandler.sa_handler = signalhandler;	
 	exitSignalHandler.sa_flags = 0;
 	sigaction(SIGTERM, &exitSignalHandler, 0);
+
+	//Load previous server content
+	LoadWhiteBoard();
 
 	if (argc == 4) {
 		portnumber = atoi(argv[1]);
@@ -278,9 +283,36 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, i
 	return atoi(subBuf);
 }
 
+void LoadWhiteBoard()
+{
+ 	FILE *fp;
+
+	fp = fopen("/home/user/whiteboard.all", "r");
+
+	char c [stringSize];
+	if(fp)
+	{
+		int i = 0;
+		while(fgets(c, sizeof c, fp) != NULL)
+		{
+			if (i < entries)
+			{
+				puts(c);
+				memcpy(whiteBoardMessages[i], c, stringSize);	
+				i++;
+			}
+		}
+		fclose(fp);
+	}
+	else
+	{
+		printf("Could not load whiteboard.all file.\n");
+	}
+	
+	return;
+}
 
 void signalhandler(int signal) {
-	//TODO: Dump whiteBoardMessages into a file
 	int i;
 	FILE *fp;
 	fp = fopen("/home/user/whiteboard.all", "w");
