@@ -133,7 +133,7 @@ int main(int argc, char * argv[]) {
 		outnum = htonl (number);
 
 		//Start a new thread.
-		id[i] = i;
+		//id[i] = i;
 		pthread_mutex_init(&mutex,NULL);
 		pthread_create(&thread[i], NULL, MessageBoard, (void *)&snew);
 		i++;
@@ -317,7 +317,7 @@ void signalhandler(int signal) {
 	FILE *fp;
 	fp = fopen("/home/user/whiteboard.all", "w");
 	for(i = 0; i < entries; i++)
-		fprintf(fp, "%s", whiteBoardMessages[i]);
+		fprintf(fp, "%s\n", whiteBoardMessages[i]);
 	fclose(fp);
 	
 	exit(1);
