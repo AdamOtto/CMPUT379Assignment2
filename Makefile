@@ -1,15 +1,16 @@
 CC = gcc
 
-host = localhost
-port = 2224
-
-all: client server
+all: client message server
 
 client: client.c
 	$(CC) $< -o wbc379
 
-server: server.c	
-	$(CC) $< -o wbs379 -lpthread
+message: messageboard.c messageboard.h
+	$(CC) -c $<
+
+server: server.c messageboard.o
+	$(CC) -c $<
+	$(CC) server.o messageboard.o -o wbs379 -lpthread
 
 clean:
-	rm -f *~ wbc379 wbs379
+	rm -f *~ *.o wbc379 wbs379
