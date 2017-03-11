@@ -283,29 +283,38 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, i
 
 void LoadWhiteBoard() {
     FILE *fp;
+    char *mode = "r";
 
-    fp = fopen("whiteboard.all", "r");
-
-    char c [stringSize];
-    if(fp) {
-        int i = 0;
-        while (fgets(c, sizeof c, fp) != NULL) {
-            if (i < entries) {
-                puts(c);
-                memcpy(whiteBoardMessages[i], c, stringSize);	
-                i++;
-            }
-        }
-        fclose(fp);
-    } else {
-        printf("Could not load whiteboard.all file.\n");
+    fp = fopen("/whiteboard.all", mode);
+    if (fp == NULL) {
+        fprintf(stderr, "Can't open whiteboard.all\n");
+        exit(1);
     }
+
+    char c[stringSize];
+    int i = 0;
+    while (fgets(c, sizeof c, fp) != NULL) {
+        if (i < entries) {
+            puts(c);
+            memcpy(whiteBoardMessages[i], c, stringSize);	
+            i++;
+        }
+    }
+    fclose(fp);
+
     return;
 }
 
 void signalhandler(int signal) {
     FILE *fp;
-    fp = fopen("whiteboard.all", "w");
+    char *mode = "w";
+
+    fp = fopen("/whiteboard.all", mode);
+    if (fp == NULL) {
+        fprintf(stderr, "Can't open whiteboard.all");
+        exit(1);
+    }
+
     int i;
     for (i = 0; i < entries; i++) {
         fprintf(fp, "%s\n", whiteBoardMessages[i]);
