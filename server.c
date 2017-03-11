@@ -1,14 +1,15 @@
-#include <fcntl.h>
-#include <linux/limits.h>
-#include <netinet/in.h>
 #include <pthread.h>
-#include <signal.h>
+#include <linux/limits.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
+#include <signal.h>
+#include "functions.c"
 
 #define	MY_PORT	2224
 #define NUM_THREADS 10
@@ -22,21 +23,24 @@ int entries = 38;
 const int stringSize = 128;
 char whiteBoardMessages[38][128];
 static struct sigaction exitSignalHandler;
-
 pthread_mutex_t mutex;
 pthread_t thread[NUM_THREADS];
-int fd, id[NUM_THREADS];
 char buff[PATH_MAX];
 
 int main(int argc, char * argv[]) {
 
-     char *cwd = getcwd(buff, sizeof(buff));
-
 	char *statefile;
 	int portnumber = MY_PORT;	
+	int i = 0;
+	int	sock, snew, fromlength, number, outnum;	
+	struct	sockaddr_in	master, from;
+	char c[stringSize];	
+	int optval = 1;
+	char *cwd = getcwd(buff, sizeof(buff));
 
 	//Make main() a daemon task.===================================
 	//To stop the server, type "kill 'id'" where id is the pid of the child process.
+
 	pid_t pid = fork();
 	pid_t sid = 0;
 	
@@ -72,13 +76,14 @@ int main(int argc, char * argv[]) {
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
+
 	//=============================================================
 	
 	//Create the signal handler to handle SIGTERM
 	exitSignalHandler.sa_handler = signalhandler;	
 	exitSignalHandler.sa_flags = 0;
 	sigaction(SIGTERM, &exitSignalHandler, 0);
-
+	
 	//Load previous server content
 	LoadWhiteBoard();
 
@@ -96,14 +101,6 @@ int main(int argc, char * argv[]) {
 		// return -1;
 	}
 
-	int	sock, snew, fromlength, number, outnum;	
-	struct	sockaddr_in	master, from;
-	char c[stringSize];
-	//char whiteBoardMessages[entries][stringSize];
-	
-	int i = 0;
-	
-	int optval = 1;
 	sock = socket (AF_INET, SOCK_STREAM, 0);
 	if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
 		printf("setsockopt error");
@@ -122,10 +119,11 @@ int main(int argc, char * argv[]) {
 	}
 	
 	i = 0;
-	
+	//main loop for the server.
 	while(1)
 	{
-		while(listen (sock, 0)) {}
+		//Start listening for clients.
+		listen (sock, 0);
 		fromlength = sizeof (from);
 		snew = accept (sock, (struct sockaddr*) & from, & fromlength);
 
@@ -135,18 +133,25 @@ int main(int argc, char * argv[]) {
 		}
 		outnum = htonl (number);
 
-		//Start a new thread.
-		//id[i] = i;
+		//Start a new thread for the client.
 		pthread_mutex_init(&mutex,NULL);
 		pthread_create(&thread[i], NULL, MessageBoard, (void *)&snew);
 		i++;
 	}
-
-	close (snew);
-	sleep(1);
 }
 
+
+/*
+MessageBoard
+
+arguments:
+	void * socket: void pointer containing the socket information.
+
+function that each thread will run.  Takes inputs from a client
+and sends back the appropriate response.
+*/
 void * MessageBoard(void * socket){
+	//Unpack the socket into an int.
 	int snew = *((int *)socket);
 
 	char c[stringSize];
@@ -160,6 +165,8 @@ void * MessageBoard(void * socket){
 	{
 		printf("Waiting for request.\n");
 		recv(snew,c,stringSize,0);
+
+		//Initialize some variables needed.
 		int index = 0;
 		int * StringParseIndex = &index;
 		int entryNum = 0;
@@ -167,10 +174,12 @@ void * MessageBoard(void * socket){
 		int encryptedFlag = 0; //0: plaintext, 1: encrypted
 		printf("request: %s\n",c);
 		switch(c[0]) {
+			//Handles read requests from the client.
 			case '?':
 				printf("Received entry request\n");
 				entryNum = getIntFromString(1, c, stringSize, StringParseIndex);
 				
+				//Checks if the message is encrypted.
 				if(c[*StringParseIndex] == 'e'){
 					printf("Encypted message received\n");
 					encryptedFlag = 1;
@@ -179,6 +188,7 @@ void * MessageBoard(void * socket){
 				else if(c[*StringParseIndex] == 'p')
 					printf("Plaintext message received\n");	
 				
+				//Ensures the request is within bounds.
 				if(entryNum >= entries)
 				{
 					if(encryptedFlag == 1)
@@ -189,15 +199,20 @@ void * MessageBoard(void * socket){
 					send(snew,c,stringSize,0);
 					break;
 				}
-				//TODO: lock whiteBoardMessages to prevent threading conflict.
+				//Sends the entry to the client.
+				pthread_mutex_lock(&mutex);
 				entrylength = getStringSize(whiteBoardMessages[entryNum]);
 				sprintf(c,"!%dp%d\n%s\n", entryNum, entrylength, whiteBoardMessages[entryNum]);
+				pthread_mutex_unlock(&mutex);
 				send(snew, c, stringSize,0);
 			break;
+
+			//Handles update requests.
 			case '@':
 				printf("Received update request\n");
 				entryNum = getIntFromString(1, c, stringSize, StringParseIndex);
 
+				//Checks if the message is encrypted.
 				if(c[*StringParseIndex] == 'e'){
 					printf("Encypted message received\n");
 					encryptedFlag = 1;
@@ -205,9 +220,10 @@ void * MessageBoard(void * socket){
 				}
 				else if(c[*StringParseIndex] == 'p')
 					printf("Plaintext message received\n");	
-
+				//Find out how many characters are in expected in the message.
 				entrylength = getIntFromString( *StringParseIndex + 1, c, stringSize, StringParseIndex);
 				
+				//Ensures the request is within bounds.
 				if(entryNum >= entries)
 				{
 					if(encryptedFlag == 1)
@@ -218,6 +234,7 @@ void * MessageBoard(void * socket){
 					send(snew,c,stringSize,0);
 					break;
 				}
+				//Ensures the message is short enough.
 				if(entrylength > stringSize)
 				{
 					if(encryptedFlag == 1)
@@ -233,15 +250,21 @@ void * MessageBoard(void * socket){
 				recv(snew,c,stringSize,0);
 
 				if(entrylength != 0) {					
-					//Update and send success message.
-					//TODO: lock whiteBoardMessages to prevent threading conflict.					
+					//Update the entry if length is greater than 0.
+					pthread_mutex_lock(&mutex);				
 					memcpy(whiteBoardMessages[entryNum], &c, entrylength);
+					pthread_mutex_unlock(&mutex);
 				}
 				else {
-					//TODO: lock whiteBoardMessages to prevent threading conflict.
-					memset(whiteBoardMessages[entryNum], 0, stringSize);			
+					//clear the entry if the entry length is 0.
+					pthread_mutex_lock(&mutex);
+					memset(whiteBoardMessages[entryNum], 0, stringSize);
+					pthread_mutex_unlock(&mutex);			
 				}
+
 				printf("Update Successful.\n");
+				
+				//Send a success message.
 				if(encryptedFlag == 1)
 					sprintf(c,"!%de%d\n\n", entryNum, entrylength);
 				else
@@ -250,6 +273,7 @@ void * MessageBoard(void * socket){
 				send(snew,c,stringSize,0);
 			break;
 			default:
+				//If an unexpected query is received, terminate the connection and exit.
 				sprintf(c,"\nUnexpected Query. Terminating Connection.\n");
 				send(snew,c,stringSize,0);
 				close (snew);
@@ -258,9 +282,20 @@ void * MessageBoard(void * socket){
 	}
 }
 
-int getStringSize(char stringToRead[]) {
-    int count = 0;
-    while(1) {
+/*
+getStringSize
+
+arguments:
+	char stringToRead[]: The string we will operate on.
+
+function that returns how many characters are in a char array.
+Reads through it until a '\0' character is found.
+*/
+int getStringSize(char stringToRead[])
+{
+	int count = 0;
+	while(1)
+	{
 		if( stringToRead[count] != '\0' )
 			count++;
 		else
@@ -268,6 +303,17 @@ int getStringSize(char stringToRead[]) {
 	}
 }
 
+/*
+getIntFromString
+
+arguments:
+	int startingIndex: the starting index we will start reading from.
+	char stringToRead[]: the string that will be parsed.
+	int sizeOfString: the size of the string.
+	int * parseIndex: an index storing how far we parsed into the string.
+
+Returns an integer that is found within a string.  The starting index must be where the integer starts.
+*/
 int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, int * parseIndex) {
 	int i, j = startingIndex;
 	for(i = startingIndex; i < sizeOfString; i++)
@@ -284,6 +330,13 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, i
 	return atoi(subBuf);
 }
 
+/*
+LoadWhiteBoard
+
+arguments:
+
+Loads the whiteboard with elements found in the whiteboard.all file.
+*/
 void LoadWhiteBoard()
 {
  	FILE *fp;
@@ -317,6 +370,14 @@ void LoadWhiteBoard()
 	return;
 }
 
+/*
+LoadWhiteBoard
+
+arguments:
+	int signal: an integer representing the signal recieved.
+
+Dumps all the content of whiteBoardMessages into a file called whiteboard.all.
+*/
 void signalhandler(int signal) {
     FILE *fp;
     char *mode = "w";
