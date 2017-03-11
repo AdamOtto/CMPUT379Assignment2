@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <linux/limits.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -8,6 +9,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <signal.h>
+#include "functions.c"
 
 #define	MY_PORT	2224
 #define NUM_THREADS 10
@@ -23,6 +25,7 @@ char whiteBoardMessages[38][128];
 static struct sigaction exitSignalHandler;
 pthread_mutex_t mutex;
 pthread_t thread[NUM_THREADS];
+char buff[PATH_MAX];
 
 int main(int argc, char * argv[]) {
 
@@ -33,6 +36,7 @@ int main(int argc, char * argv[]) {
 	struct	sockaddr_in	master, from;
 	char c[stringSize];	
 	int optval = 1;
+	char *cwd = getcwd(buff, sizeof(buff));
 
 	//Make main() a daemon task.===================================
 	//To stop the server, type "kill 'id'" where id is the pid of the child process.
@@ -135,6 +139,8 @@ int main(int argc, char * argv[]) {
 		i++;
 	}
 }
+
+
 /*
 MessageBoard
 
@@ -241,7 +247,7 @@ void * MessageBoard(void * socket){
 				}
 
 				//Bulletproofing done, get message next.			
-				recv(snew,c,stringSize,0)
+				recv(snew,c,stringSize,0);
 
 				if(entrylength != 0) {					
 					//Update the entry if length is greater than 0.
@@ -324,11 +330,22 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, i
 	return atoi(subBuf);
 }
 
+/*
+LoadWhiteBoard
+
+arguments:
+
+Loads the whiteboard with elements found in the whiteboard.all file.
+*/
 void LoadWhiteBoard()
 {
  	FILE *fp;
 
-	fp = fopen("whiteboard.all", "r");
+        char path[PATH_MAX];
+        strcpy(path, buff);
+        strcat(path, "/whiteboard.all");
+
+	fp = fopen(path, "r");
 
 	char c [stringSize];
 	if(fp)
@@ -353,14 +370,29 @@ void LoadWhiteBoard()
 	return;
 }
 
+/*
+LoadWhiteBoard
+
+arguments:
+	int signal: an integer representing the signal recieved.
+
+Dumps all the content of whiteBoardMessages into a file called whiteboard.all.
+*/
 void signalhandler(int signal) {
-	int i;
-	int length;
-	FILE *fp;
-	fp = fopen("/home/user/whiteboard.all", "w");
-	for(i = 0; i < entries; i++)
-		fprintf(fp, "%s", whiteBoardMessages[i]);
-	fclose(fp);
-	
-	exit(1);
+    FILE *fp;
+    char *mode = "w";
+
+    char path[PATH_MAX];
+    strcpy(path, buff);
+    strcat(path, "/whiteboard.all");
+
+    fp = fopen(path, mode);
+
+    int i;
+    for (i = 0; i < entries; i++) {
+        fprintf(fp, "%s\n", whiteBoardMessages[i]);
+    }
+
+    fclose(fp);
+    exit(1);
 }

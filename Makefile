@@ -1,5 +1,8 @@
 CC = gcc
 
+host = localhost
+port = 2224
+
 all: client server
 
 client: client.c

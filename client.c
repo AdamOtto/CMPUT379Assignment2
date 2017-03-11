@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
 		else if (optionStr[0] == '3')
 			sendEncryptedMessage(s);
 		else if (optionStr[0] == '4') {
-			send(s,"bye bye",stringSize,0);
+			send(s, "bye bye", stringSize, 0);
 			break;
 		}
 		/*
