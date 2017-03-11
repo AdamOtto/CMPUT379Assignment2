@@ -1,13 +1,14 @@
-#include <pthread.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <fcntl.h>
+#include <linux/limits.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <fcntl.h>
-#include <signal.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define	MY_PORT	2224
 #define NUM_THREADS 10
@@ -25,9 +26,11 @@ static struct sigaction exitSignalHandler;
 pthread_mutex_t mutex;
 pthread_t thread[NUM_THREADS];
 int fd, id[NUM_THREADS];
-
+char buff[PATH_MAX];
 
 int main(int argc, char * argv[]) {
+
+     char *cwd = getcwd(buff, sizeof(buff));
 
 	char *statefile;
 	int portnumber = MY_PORT;	
@@ -285,7 +288,11 @@ void LoadWhiteBoard()
 {
  	FILE *fp;
 
-	fp = fopen("/home/user/whiteboard.all", "r");
+        char path[PATH_MAX];
+        strcpy(path, buff);
+        strcat(path, "/whiteboard.all");
+
+	fp = fopen(path, "r");
 
 	char c [stringSize];
 	if(fp)
@@ -314,11 +321,11 @@ void signalhandler(int signal) {
     FILE *fp;
     char *mode = "w";
 
-    fp = fopen("/whiteboard.all", mode);
-    if (fp == NULL) {
-        fprintf(stderr, "Can't open whiteboard.all");
-        exit(1);
-    }
+    char path[PATH_MAX];
+    strcpy(path, buff);
+    strcat(path, "/whiteboard.all");
+
+    fp = fopen(path, mode);
 
     int i;
     for (i = 0; i < entries; i++) {
