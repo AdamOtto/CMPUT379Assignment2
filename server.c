@@ -215,7 +215,7 @@ void * MessageBoard(void * socket){
 					send(snew,c,stringSize,0);
 					break;
 				}
-				if(entrylength >= stringSize)
+				if(entrylength > stringSize)
 				{
 					if(encryptedFlag == 1)
 						sprintf(c,"!%de%d\nMessage is too long.\n", entryNum, entrylength);
@@ -314,10 +314,11 @@ void LoadWhiteBoard()
 
 void signalhandler(int signal) {
 	int i;
+	int length;
 	FILE *fp;
 	fp = fopen("/home/user/whiteboard.all", "w");
 	for(i = 0; i < entries; i++)
-		fprintf(fp, "%s\n", whiteBoardMessages[i]);
+		fprintf(fp, "%s", whiteBoardMessages[i]);
 	fclose(fp);
 	
 	exit(1);

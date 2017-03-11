@@ -10,13 +10,73 @@
 
 #define MY_PORT 2224
 #define HOSTNAME "localhost"
+#define SCREEN_HEIGHT 25
+
+//Global constants
+int stringSize = 128;
+
+void clearScreen () {
+	int i;
+	for ( i = 0; i < SCREEN_HEIGHT; i++ )
+		putchar ( '\n' );
+	return;
+}
+
+void getEntry(int soc) {
+	char optionStr[stringSize];
+	char sendStr[stringSize];
+	
+	//clear sendStr
+	memset(sendStr, 0, stringSize);
+	
+	printf("Which Entry would you like to read?: ");
+	fgets(optionStr, stringSize, stdin);
+	strcat(sendStr, "?");
+	strcat(sendStr, optionStr);
+	strcat(sendStr, "\n");
+	printf("\n");
+	send(soc,sendStr,stringSize,0);
+	recv(soc,sendStr,stringSize,0);
+	printf("%s", sendStr);
+	return;
+}
+
+void sendMessage (int soc) {
+	char optionStr[stringSize];
+	char sendStr[stringSize];
+	char buf[5];
+	//clear sendStr
+	memset(sendStr, 0, stringSize);
+
+	printf("Which Entry would you like to write to?: ");
+	fgets(optionStr, stringSize, stdin);
+	optionStr[strlen(optionStr) - 1] = '\0';
+	strcat(sendStr, "@");
+	strcat(sendStr, optionStr);
+	strcat(sendStr, "p");
+	sprintf(buf, "%d", stringSize);
+	strcat(sendStr, buf);
+	strcat(sendStr, "\n");
+	send(soc,sendStr,stringSize,0);
+	//printf("%s", sendStr);
+	printf("Please type your message:\n");
+	fgets(optionStr, stringSize, stdin);
+	send(soc,optionStr,stringSize,0);
+	recv(soc,sendStr,stringSize,0);
+	printf("\n%s", sendStr);
+	return;
+}
+
+void sendEncryptedMessage(int soc) {
+	printf("Encrypted Messages are not implemented yet.\n\n");
+	return;
+}
 
 int main(int argc, char *argv[]) {
 
     char *hostname = "localhost";
     char *keyfile;
     int portnumber = MY_PORT;
-    int stringSize = 128;
 
     printf("\n");
     if (argc == 3) {
@@ -61,12 +121,27 @@ int main(int argc, char *argv[]) {
     }
 
 	recv(s,c,stringSize,0);
-	printf("%s\n",c);
-	
+	//printf("%s\n",c);
+	char optionStr[stringSize];
+	char sendStr[stringSize];
+	clearScreen();
 	while(1)
 	{
-		printf("Please type a command:\n");
-		char sendStr[stringSize];	
+		printf("Welcome to the WHITEBOARD SERVER OF THE FUTURE!\nAll messages are 128 characters long.\n");
+		printf("Please select one of the following options (type in the associated number)\n");
+		printf("1 - Read an entry.\n2 - Write an unencrypted message.\n3 - Write an encrypted message.\n4 - Exit.\n");
+		fgets(optionStr, stringSize, stdin);
+		if(optionStr[0] == '1')
+			getEntry(s);
+		else if (optionStr[0] == '2')
+			sendMessage(s);
+		else if (optionStr[0] == '3')
+			sendEncryptedMessage(s);
+		else if (optionStr[0] == '4') {
+			send(s,"bye bye",stringSize,0);
+			break;
+		}
+		/*
 		fgets (sendStr, stringSize, stdin);
 		send(s,sendStr,stringSize,0);
 		if(sendStr[0] == '@')
@@ -76,12 +151,14 @@ int main(int argc, char *argv[]) {
 			send(s,sendStr,stringSize,0);
 		}
 		recv(s,c,stringSize,0);
+		clearScreen();
 		printf("%s\n",c);
 		if(strcmp(c, "\nUnexpected Query. Terminating Connection.\n") == 0)
 		{
 			close(s);
 			break;
 		}
+		*/
 	}
 
 	close (s);
