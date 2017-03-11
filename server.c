@@ -255,11 +255,9 @@ void * MessageBoard(void * socket){
 	}
 }
 
-int getStringSize(char stringToRead[])
-{
-	int count = 0;
-	while(1)
-	{
+int getStringSize(char stringToRead[]) {
+    int count = 0;
+    while(1) {
 		if( stringToRead[count] != '\0' )
 			count++;
 		else
@@ -283,42 +281,36 @@ int getIntFromString(int startingIndex, char stringToRead[], int sizeOfString, i
 	return atoi(subBuf);
 }
 
-void LoadWhiteBoard()
-{
- 	FILE *fp;
+void LoadWhiteBoard() {
+    FILE *fp;
 
-	fp = fopen("/home/user/whiteboard.all", "r");
+    fp = fopen("whiteboard.all", "r");
 
-	char c [stringSize];
-	if(fp)
-	{
-		int i = 0;
-		while(fgets(c, sizeof c, fp) != NULL)
-		{
-			if (i < entries)
-			{
-				puts(c);
-				memcpy(whiteBoardMessages[i], c, stringSize);	
-				i++;
-			}
-		}
-		fclose(fp);
-	}
-	else
-	{
-		printf("Could not load whiteboard.all file.\n");
-	}
-	
-	return;
+    char c [stringSize];
+    if(fp) {
+        int i = 0;
+        while (fgets(c, sizeof c, fp) != NULL) {
+            if (i < entries) {
+                puts(c);
+                memcpy(whiteBoardMessages[i], c, stringSize);	
+                i++;
+            }
+        }
+        fclose(fp);
+    } else {
+        printf("Could not load whiteboard.all file.\n");
+    }
+    return;
 }
 
 void signalhandler(int signal) {
-	int i;
-	FILE *fp;
-	fp = fopen("/home/user/whiteboard.all", "w");
-	for(i = 0; i < entries; i++)
-		fprintf(fp, "%s\n", whiteBoardMessages[i]);
-	fclose(fp);
-	
-	exit(1);
+    FILE *fp;
+    fp = fopen("whiteboard.all", "w");
+    int i;
+    for (i = 0; i < entries; i++) {
+        fprintf(fp, "%s\n", whiteBoardMessages[i]);
+    }
+
+    fclose(fp);
+    exit(1);
 }
