@@ -215,7 +215,7 @@ void * MessageBoard(void * socket){
 					send(snew,c,stringSize,0);
 					break;
 				}
-				if(entrylength >= stringSize)
+				if(entrylength > stringSize)
 				{
 					if(encryptedFlag == 1)
 						sprintf(c,"!%de%d\nMessage is too long.\n", entryNum, entrylength);
