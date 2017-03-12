@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) {
 	char c[strSize];	
 	int optval = 1;
 	char *cwd = getcwd(buff, sizeof(buff));
-/*
+
 	//Make main() a daemon task.===================================
 	//To stop the server, type "kill 'id'" where id is the pid of the child process.
 
@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
 	close(STDERR_FILENO);
 
 	//=============================================================
-*/	
+	
 	//Create the signal handler to handle SIGTERM
 	exitSignalHandler.sa_handler = signalhandler;	
 	exitSignalHandler.sa_flags = 0;
