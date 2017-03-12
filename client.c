@@ -15,52 +15,52 @@
 //Global constants
 int stringSize = 128;
 
-void clearScreen () {
-	int i;
-	for ( i = 0; i < SCREEN_HEIGHT; i++ )
-		putchar ( '\n' );
-	return;
+void clearScreen() {
+    int i;
+    for (i = 0; i < SCREEN_HEIGHT; i++ )
+    putchar ( '\n' );
+    return;
 }
 
 void getEntry(int soc) {
-	char optionStr[stringSize];
-	char sendStr[stringSize];
-	
-	//clear sendStr
-	memset(sendStr, 0, stringSize);
-	
-	printf("Which Entry would you like to read?: ");
-	fgets(optionStr, stringSize, stdin);
-	strcat(sendStr, "?");
-	strcat(sendStr, optionStr);
-	strcat(sendStr, "\n");
-	printf("\n");
-	send(soc,sendStr,stringSize,0);
-	recv(soc,sendStr,stringSize,0);
-	printf("%s\n", sendStr);
-	return;
+    char optionStr[stringSize];
+    char sendStr[stringSize];
+
+    // Clear sendStr
+    memset(sendStr, 0, stringSize);
+
+    printf("Which Entry would you like to read?: ");
+    fgets(optionStr, stringSize, stdin);
+    strcat(sendStr, "?");
+    strcat(sendStr, optionStr);
+    strcat(sendStr, "\n");
+    printf("\n");
+    send(soc, sendStr, stringSize, 0);
+    recv(soc, sendStr, stringSize, 0);
+    printf("%s\n", sendStr);
+    return;
 }
 
-void sendMessage (int soc) {
-	char optionStr[stringSize];
-	char sendStr[stringSize];
-	char buf[5];
-	//clear sendStr
-	memset(sendStr, 0, stringSize);
+void sendMessage(int soc) {
+    char optionStr[stringSize];
+    char sendStr[stringSize];
+    char buf[5];
+    // Clear sendStr
+    memset(sendStr, 0, stringSize);
 
-	printf("Which Entry would you like to write to?: ");
-	fgets(optionStr, stringSize, stdin);
-	optionStr[strlen(optionStr) - 1] = '\0';
-	strcat(sendStr, "@");
-	strcat(sendStr, optionStr);
-	strcat(sendStr, "p");
-	printf("Please type your message:\n");
-	fgets(optionStr, stringSize, stdin);
-	sprintf(buf, "%d", getMessageSize(optionStr));
-	strcat(sendStr, buf);
-	strcat(sendStr, "\n");
-	send(soc,sendStr,stringSize,0);
-	if(optionStr[0] == '\n')
+    printf("Which Entry would you like to write to?: ");
+    fgets(optionStr, stringSize, stdin);
+    optionStr[strlen(optionStr) - 1] = '\0';
+    strcat(sendStr, "@");
+    strcat(sendStr, optionStr);
+    strcat(sendStr, "p");
+    printf("Please type your message:\n");
+    fgets(optionStr, stringSize, stdin);
+    sprintf(buf, "%d", getMessageSize(optionStr));
+    strcat(sendStr, buf);
+    strcat(sendStr, "\n");
+    send(soc, sendStr, stringSize, 0);
+    if (optionStr[0] == '\n')
         printf("\n%s", sendStr);
 	send(soc,optionStr,stringSize,0);
 	recv(soc,sendStr,stringSize,0);
@@ -68,20 +68,19 @@ void sendMessage (int soc) {
 	return;
 }
 
-int getMessageSize(char message[])
-{
-	int count = 0;
-	while (1) {
-		if (message[count] != '\n' )
-			count++;
-		else
-			return count;
-	}
+int getMessageSize(char message[]) {
+    int count = 0;
+    while (1) {
+        if (message[count] != '\n')
+            count++;
+        else
+            return count;
+    }
 }
 
 void sendEncryptedMessage(int soc) {
-	printf("Encrypted Messages are not implemented yet.\n\n");
-	return;
+    printf("Encrypted Messages are not implemented yet.\n\n");
+    return;
 }
 
 int main(int argc, char *argv[]) {
@@ -106,7 +105,7 @@ int main(int argc, char *argv[]) {
     int	s, number;
     char c[stringSize];
     struct sockaddr_in server;
-    struct hostent	*host;
+    struct hostent *host;
 
     host = gethostbyname(hostname);
 
@@ -132,32 +131,31 @@ int main(int argc, char *argv[]) {
         exit (1);
     }
 	
-	clearScreen();
-	recv(s,c,stringSize,0);
-	printf("%s\n",c);
-	char optionStr[stringSize];
-	char sendStr[stringSize];
-	
-	while(1)
-	{
-		printf("Welcome to the WHITEBOARD SERVER OF THE FUTURE!\nAll messages are 128 characters long.\n");
-		printf("Please select one of the following options (type in the associated number)\n");
-		printf("1 - Read an entry.\n2 - Write an unencrypted message.\n3 - Write an encrypted message.\n4 - Exit.\n");
-		fgets(optionStr, stringSize, stdin);
-		if(optionStr[0] == '1')
-			getEntry(s);
-		else if (optionStr[0] == '2')
-			sendMessage(s);
-		else if (optionStr[0] == '3')
-			sendEncryptedMessage(s);
-		else if (optionStr[0] == '4') {
-			send(s, "bye bye", stringSize, 0);
-			break;
-		}
-		/*
-		fgets (sendStr, stringSize, stdin);
-		send(s,sendStr,stringSize,0);
-		if(sendStr[0] == '@')
+    clearScreen();
+    recv(s, c, stringSize, 0);
+    printf("%s\n",c);
+    char optionStr[stringSize];
+    char sendStr[stringSize];
+
+    while(1) {
+        printf("Welcome to the WHITEBOARD SERVER OF THE FUTURE!\nAll messages are 128 characters long.\n");
+        printf("Please select one of the following options (type in the associated number)\n");
+        printf("1 - Read an entry.\n2 - Write an unencrypted message.\n3 - Write an encrypted message.\n4 - Exit.\n");
+        fgets(optionStr, stringSize, stdin);
+        if (optionStr[0] == '1')
+            getEntry(s);
+        else if (optionStr[0] == '2')
+            sendMessage(s);
+        else if (optionStr[0] == '3')
+            sendEncryptedMessage(s);
+        else if (optionStr[0] == '4') {
+            send(s, "bye bye", stringSize, 0);
+            break;
+        }
+        /*
+         * fgets(sendStr, stringSize, stdin);
+         * send(s, sendStr,stringSize,0);
+		if (sendStr[0] == '@')
 		{
 			//Send the message next.
 			fgets (sendStr, stringSize, stdin);
@@ -174,5 +172,5 @@ int main(int argc, char *argv[]) {
 		*/
 	}
 
-	close (s);
+    close (s);
 }
