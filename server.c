@@ -23,7 +23,7 @@ const int strSize = 128;
 char whiteBoardMessages[38][128];
 static struct sigaction exitSignalHandler;
 extern pthread_mutex_t mutex;
-pthread_t thread[NUM_THREADS];
+pthread_t thread;
 char buff[PATH_MAX];
 
 int main(int argc, char * argv[]) {
@@ -31,7 +31,7 @@ int main(int argc, char * argv[]) {
 	char *statefile;
 	int portnumber = MY_PORT;	
 	int i = 0;
-	int	sock, snew, fromlength, number, outnum;	
+	int sock, snew, fromlength, number, outnum;	
 	struct	sockaddr_in	master, from;
 	char c[strSize];	
 	int optval = 1;
@@ -39,7 +39,7 @@ int main(int argc, char * argv[]) {
 
 	//Make main() a daemon task.===================================
 	//To stop the server, type "kill 'id'" where id is the pid of the child process.
-
+	
 	pid_t pid = fork();
 	pid_t sid = 0;
 	
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
-
+	
 	//=============================================================
 	
 	//Create the signal handler to handle SIGTERM
@@ -117,7 +117,6 @@ int main(int argc, char * argv[]) {
 		exit (1);
 	}
 	
-	i = 0;
 	//main loop for the server.
 	while(1)
 	{
@@ -134,8 +133,7 @@ int main(int argc, char * argv[]) {
 
 		//Start a new thread for the client.
 		pthread_mutex_init(&mutex,NULL);
-		pthread_create(&thread[i], NULL, MessageBoard, (void *)&snew);
-		i++;
+		pthread_create(&thread, NULL, MessageBoard, (void *)&snew);
 	}
 }
 
@@ -182,7 +180,7 @@ void LoadWhiteBoard()
 }
 
 /*
-LoadWhiteBoard
+signalhandler
 
 arguments:
 	int signal: an integer representing the signal recieved.
@@ -201,7 +199,7 @@ void signalhandler(int signal) {
 
     int i;
     for (i = 0; i < _entries; i++) {
-        fprintf(fp, "%s\n", whiteBoardMessages[i]);
+        fprintf(fp, "%s", whiteBoardMessages[i]);
     }
 
     fclose(fp);

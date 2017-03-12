@@ -169,7 +169,8 @@ void * MessageBoard(void *socket) {
 
                 if (entryLength != 0) {					
                     // Update entry if length > 0
-                    pthread_mutex_lock(&mutex);				
+                    pthread_mutex_lock(&mutex);
+                    memset(whiteBoardMessages[entryNum], 0, stringSize);			
                     memcpy(whiteBoardMessages[entryNum], &c, entryLength);
                     pthread_mutex_unlock(&mutex);
                 } else {

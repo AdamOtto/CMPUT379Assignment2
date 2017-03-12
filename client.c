@@ -37,7 +37,7 @@ void getEntry(int soc) {
 	printf("\n");
 	send(soc,sendStr,stringSize,0);
 	recv(soc,sendStr,stringSize,0);
-	printf("%s", sendStr);
+	printf("%s\n", sendStr);
 	return;
 }
 
@@ -54,17 +54,29 @@ void sendMessage (int soc) {
 	strcat(sendStr, "@");
 	strcat(sendStr, optionStr);
 	strcat(sendStr, "p");
-	sprintf(buf, "%d", stringSize);
+	printf("Please type your message:\n");
+	fgets(optionStr, stringSize, stdin);
+	sprintf(buf, "%d", getMessageSize(optionStr));
 	strcat(sendStr, buf);
 	strcat(sendStr, "\n");
 	send(soc,sendStr,stringSize,0);
-	//printf("%s", sendStr);
-	printf("Please type your message:\n");
-	fgets(optionStr, stringSize, stdin);
+	if(optionStr[0] == '\n')
+        printf("\n%s", sendStr);
 	send(soc,optionStr,stringSize,0);
 	recv(soc,sendStr,stringSize,0);
 	printf("\n%s", sendStr);
 	return;
+}
+
+int getMessageSize(char message[])
+{
+	int count = 0;
+	while (1) {
+		if (message[count] != '\n' )
+			count++;
+		else
+			return count;
+	}
 }
 
 void sendEncryptedMessage(int soc) {
@@ -119,12 +131,13 @@ int main(int argc, char *argv[]) {
         perror ("Client: cannot connect to server");
         exit (1);
     }
-
+	
+	clearScreen();
 	recv(s,c,stringSize,0);
-	//printf("%s\n",c);
+	printf("%s\n",c);
 	char optionStr[stringSize];
 	char sendStr[stringSize];
-	clearScreen();
+	
 	while(1)
 	{
 		printf("Welcome to the WHITEBOARD SERVER OF THE FUTURE!\nAll messages are 128 characters long.\n");
