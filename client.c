@@ -10,9 +10,9 @@
 
 #define SCREEN_HEIGHT 25
 #define MAX_STRING   128
-
 // Global constant
 const int stringSize = MAX_STRING;
+
 
 void clearScreen() {
     int i;

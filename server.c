@@ -9,18 +9,18 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "messageboard.h"
 
 #define NUM_THREADS 10
 #define MAX_STRING 128
-const int strSize = MAX_STRING;
+const int stringSize = MAX_STRING;
 
 /*Global Variables*/
 int entries;
 char whiteBoardMessages[38][MAX_STRING];
 
+
 static struct sigaction exitSignalHandler;
-extern pthread_mutex_t mutex;
+pthread_mutex_t mutex;
 pthread_t thread;
 char buff[PATH_MAX];
 
@@ -220,7 +220,7 @@ int main(int argc, char * argv[]) {
     int portnumber;
     int sock, snew, fromlength, number, outnum;	
     struct sockaddr_in master, from;
-    char c[strSize];	
+    char c[stringSize];	
     int optval = 1;
     char *cwd = getcwd(buff, sizeof(buff));
 
@@ -332,13 +332,13 @@ void LoadWhiteBoard(char *fileName) {
 
     fp = fopen(path, "r");
 
-    char c[strSize];
+    char c[stringSize];
     if (fp) {
         int i = 0;
         while (fgets(c, sizeof c, fp) != NULL) {
             if (i < entries) {
                 puts(c);
-                memcpy(whiteBoardMessages[i], c, strSize);	
+                memcpy(whiteBoardMessages[i], c, stringSize);	
                 i++;
             }
         }
