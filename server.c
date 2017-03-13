@@ -199,7 +199,7 @@ void signalhandler(int signal) {
 
     int i;
     for (i = 0; i < _entries; i++) {
-        fprintf(fp, "%s", whiteBoardMessages[i]);
+        fprintf(fp, "%s\n", whiteBoardMessages[i]);
     }
 
     fclose(fp);
