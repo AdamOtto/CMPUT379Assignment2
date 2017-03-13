@@ -12,12 +12,12 @@
 #define MAX_STRING   128
 
 // Global constant
-int stringSize = MAX_STRING;
+const int stringSize = MAX_STRING;
 
 void clearScreen() {
     int i;
     for (i = 0; i < SCREEN_HEIGHT; i++ )
-    putchar ( '\n' );
+        putchar('\n');
     return;
 }
 
@@ -59,8 +59,6 @@ void sendMessage(int soc) {
     strcat(sendStr, buf);
     strcat(sendStr, "\n");
     send(soc, sendStr, stringSize, 0);
-    //if (optionStr[0] == '\n')
-    //printf("\n%s", sendStr);
     send(soc,optionStr,stringSize,0);
     recv(soc,sendStr,stringSize,0);
     printf("\n%s", sendStr);
