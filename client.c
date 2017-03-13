@@ -153,24 +153,22 @@ int main(int argc, char *argv[]) {
             break;
         }
         /*
-         * fgets(sendStr, stringSize, stdin);
-         * send(s, sendStr,stringSize,0);
-		if (sendStr[0] == '@')
-		{
-			//Send the message next.
-			fgets (sendStr, stringSize, stdin);
-			send(s,sendStr,stringSize,0);
-		}
-		recv(s,c,stringSize,0);
-		clearScreen();
-		printf("%s\n",c);
-		if(strcmp(c, "\nUnexpected Query. Terminating Connection.\n") == 0)
-		{
-			close(s);
-			break;
-		}
-		*/
-	}
+        fgets(sendStr, stringSize, stdin);
+        send(s, sendStr, stringSize, 0);
+        if (sendStr[0] == '@') {
+            //Send the message next
+            fgets (sendStr, stringSize, stdin);
+            send(s, sendStr, stringSize, 0);
+        }
+        recv(s, c, stringSize, 0);
+        clearScreen();
+        printf("%s\n", c);
+        if (strcmp(c, "\nUnexpected Query. Terminating Connection.\n") == 0) {
+            close(s);
+            break;
+        }
+	*/
+    }
 
     close (s);
 }
