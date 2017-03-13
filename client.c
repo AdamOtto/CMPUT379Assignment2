@@ -60,12 +60,12 @@ void sendMessage(int soc) {
     strcat(sendStr, buf);
     strcat(sendStr, "\n");
     send(soc, sendStr, stringSize, 0);
-    if (optionStr[0] == '\n')
-        printf("\n%s", sendStr);
-	send(soc,optionStr,stringSize,0);
-	recv(soc,sendStr,stringSize,0);
-	printf("\n%s", sendStr);
-	return;
+    //if (optionStr[0] == '\n')
+    //printf("\n%s", sendStr);
+    send(soc,optionStr,stringSize,0);
+    recv(soc,sendStr,stringSize,0);
+    printf("\n%s", sendStr);
+    return;
 }
 
 int getMessageSize(char message[]) {
@@ -152,23 +152,7 @@ int main(int argc, char *argv[]) {
             send(s, "bye bye", stringSize, 0);
             break;
         }
-        /*
-        fgets(sendStr, stringSize, stdin);
-        send(s, sendStr, stringSize, 0);
-        if (sendStr[0] == '@') {
-            //Send the message next
-            fgets (sendStr, stringSize, stdin);
-            send(s, sendStr, stringSize, 0);
-        }
-        recv(s, c, stringSize, 0);
-        clearScreen();
-        printf("%s\n", c);
-        if (strcmp(c, "\nUnexpected Query. Terminating Connection.\n") == 0) {
-            close(s);
-            break;
-        }
-	*/
     }
 
-    close (s);
+    close(s);
 }
