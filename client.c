@@ -1,19 +1,18 @@
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#define MY_PORT 2224
-#define HOSTNAME "localhost"
 #define SCREEN_HEIGHT 25
+#define MAX_STRING   128
 
-//Global constants
-int stringSize = 128;
+// Global constant
+int stringSize = MAX_STRING;
 
 void clearScreen() {
     int i;
@@ -85,9 +84,9 @@ void sendEncryptedMessage(int soc) {
 
 int main(int argc, char *argv[]) {
 
-    char *hostname = "localhost";
+    char *hostname;
     char *keyfile;
-    int portnumber = MY_PORT;
+    int portnumber;
 
     printf("\n");
     if (argc == 3) {
@@ -99,7 +98,7 @@ int main(int argc, char *argv[]) {
         keyfile = argv[3];
     } else {
         printf("Incorrect number of arguments supplied.\n");
-        // exit (1);
+        exit(1);
     }
 
     int	s, number;
@@ -111,14 +110,14 @@ int main(int argc, char *argv[]) {
 
     if (host == NULL) {
         perror ("Client: cannot get host description");
-        exit (1);
+        exit(1);
     }
 
-    s = socket (AF_INET, SOCK_STREAM, 0);
+    s = socket(AF_INET, SOCK_STREAM, 0);
 
     if (s < 0) {
         perror ("Client: cannot open socket");
-        exit (1);
+        exit(1);
     }
 
     bzero (&server, sizeof(server));
@@ -127,8 +126,8 @@ int main(int argc, char *argv[]) {
     server.sin_port = htons (portnumber);
 
     if (connect (s, (struct sockaddr*) & server, sizeof (server))) {
-        perror ("Client: cannot connect to server");
-        exit (1);
+        perror("Client: cannot connect to server");
+        exit(1);
     }
 	
     clearScreen();
@@ -137,10 +136,16 @@ int main(int argc, char *argv[]) {
     char optionStr[stringSize];
     char sendStr[stringSize];
 
-    while(1) {
-        printf("Welcome to the WHITEBOARD SERVER OF THE FUTURE!\nAll messages are 128 characters long.\n");
+    while (1) {
+
+        printf("Welcome to the WHITEBOARD SERVER OF THE FUTURE!\n");
+        printf("All messages are maximum 128 characters long.\n");
         printf("Please select one of the following options (type in the associated number)\n");
-        printf("1 - Read an entry.\n2 - Write an unencrypted message.\n3 - Write an encrypted message.\n4 - Exit.\n");
+        printf("1 - Read an entry\n");
+        printf("2 - Write an unencrypted message.\n");
+        printf("3 - Write an encrypted message.\n");
+        printf("4 - Exit.\n");
+
         fgets(optionStr, stringSize, stdin);
         if (optionStr[0] == '1')
             getEntry(s);
@@ -153,6 +158,5 @@ int main(int argc, char *argv[]) {
             break;
         }
     }
-
     close(s);
 }
