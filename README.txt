@@ -25,12 +25,12 @@ gcc server.c -o wbs379 -lpthread
 
 Server Examples
 $ ./wbs379 2224 -n 38
-pid of child process 24164 
-$ kill 24164
+pid of child process 2225 
+$ kill 2225
 
 $ ./wbs379 2224 -f whiteboard.all
-pid of child process 24142 
-$ kill 24142
+pid of child process 2225 
+$ kill 2225
 
 Client Example
 ./wbc379 localhost 2224
